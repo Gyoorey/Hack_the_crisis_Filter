@@ -1,1 +1,1 @@
-Hack the crisis megoldasunk
+Hack the crisis megoldasunk!
