@@ -1,1 +1,1 @@
-Hack the crisis megoldas!
+Sajat readme
