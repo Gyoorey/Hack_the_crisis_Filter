@@ -28,6 +28,7 @@ dependencies:
   path:
   pdf: ^1.6.0
   open_file: ^3.0.1
+  flutter_ffmpeg: ^0.2.10
 
 dev_dependencies:
   flutter_test:
