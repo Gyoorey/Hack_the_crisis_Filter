@@ -7,6 +7,7 @@ import 'package:pdf/widgets.dart' as pw;
 import 'package:path_provider/path_provider.dart';
 import 'globals.dart' as globals;
 import 'package:startupnamer/camera_functions.dart';
+import 'PdfHandler.dart';
 
 void PopulateFeladatLista()
 {
@@ -17,6 +18,7 @@ void PopulateFeladatLista()
 
 final String s_AppTitle = "Számonkérési alkalmazás";
 CameraFunctions cam;
+PdfHandler m_PdfHandler = PdfHandler(globals.s_RiportPdf);
 
 void main() {
   PopulateFeladatLista();
@@ -36,8 +38,8 @@ class App extends StatelessWidget {
 class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    cam.initState();
-    cam.run();
+	cam.initState();
+	cam.run();
     return Scaffold(
       appBar: AppBar(title: Text(s_AppTitle)),
       body: Center(
@@ -65,7 +67,6 @@ class SOF extends StatefulWidget {
 class _SOFState extends State<SOF> {
   var cards = <Card>[];
   var megoldasTextController = TextEditingController();
-  PdfHandler m_PdfHandler = PdfHandler("reportPdf.pdf");
   int _charCount = 0;
   bool _isFirstChange = true;
   Timer _charLogTimer;
@@ -95,7 +96,7 @@ class _SOFState extends State<SOF> {
             child: TextField(
               maxLines: 10,
               controller: megoldasTextController,
-              onChanged: _onChanged,
+			  onChanged: _onChanged,
               decoration: InputDecoration(
                 hintText: "Írd ide a megoldást",
                 fillColor: Colors.grey[300],
@@ -115,7 +116,7 @@ class _SOFState extends State<SOF> {
       cards.add(createCard());
     }
   }
-
+  
   Future<String> get _localPath async {
     final directory = await getTemporaryDirectory();
     return directory.path;
@@ -155,6 +156,7 @@ class _SOFState extends State<SOF> {
     });
   }
 
+
   @override
   Widget build(BuildContext context) {
     if(globals.feladatSorszam == 0) {
@@ -180,7 +182,7 @@ class _SOFState extends State<SOF> {
                       globals.feladatmegoldasLista[globals.feladatSorszam]
                           .megoldas = megoldasTextController.text;
                       globals.feladatSorszam++;
-
+					  
                       // TODO: @dani extend globals with charCounter
                       stopTimer();
 
@@ -220,10 +222,9 @@ class _SOFState extends State<SOF> {
                     globals.feladatmegoldasLista[globals.feladatSorszam]
                         .megoldas = megoldasTextController.text;
                     globals.feladatSorszam++;
-
+					
                     // TODO: @dani extend globals with charCounter
                     stopTimer();
-
                     await Navigator.push(
                       context,
                       MaterialPageRoute(
@@ -239,7 +240,8 @@ class _SOFState extends State<SOF> {
                 onPressed: () {
                   if (globals.feladatSorszam > 0) {
                     globals.feladatSorszam--;
-                    // TODO: @dani extend globals with charCounter
+					
+					// TODO: @dani extend globals with charCounter
                     stopTimer();
                     Navigator.pop(context);
                   }
@@ -258,9 +260,11 @@ class _SOFState extends State<SOF> {
                RaisedButton(
                   child: Text('Beadas'),
                   onPressed: () async {
-                    await cam.stop();
+					await cam.stop();
                     globals.beadva = true;
                     m_PdfHandler.AddFeladatPage();
+                    //m_PdfHandler.AddImagesPage();
+                    m_PdfHandler.AddMetrikaPage();
                     m_PdfHandler.SavePdf();
                     await Navigator.push(
                       context,
@@ -301,179 +305,5 @@ class _SOFState extends State<SOF> {
         ),
       );
     }
-  }
-}
-
-class PdfHandler {
-  final String s_MainHeader = "Írásbeli számonkérés";
-  final String s_Feladat = "Feladat";
-  final String s_Leiras = "Leiras";
-  final String s_Megoldas = "Megoldas";
-  final String s_Kepek = "Kepek";
-  final String s_Metrika = "Metrika";
-
-  int feladatCount = 0;
-
-  String m_FileName;
-  pw.Document m_PdfDoc;
-
-  PdfHandler(String _fileName) {
-    m_FileName = _fileName;
-    CreateDoc();
-  }
-
-  void CreateDoc() {
-    m_PdfDoc = pw.Document();
-  }
-
-  void AddFeladatPage() {
-    int i = 0;
-    for(i = 0; i < globals.feladatmegoldasLista.length; i++) {
-      m_PdfDoc.addPage(pw.MultiPage(
-          pageFormat: GetPageFormat(),
-          crossAxisAlignment: getCrossAxisAlignment(),
-          header: (pw.Context context) {
-            return GetHeader(context);
-          },
-          footer: (pw.Context context) {
-            return getFooter(context);
-          },
-          build: (pw.Context context) =>
-          <pw.Widget>[
-            pw.Header(
-                level: 0,
-                child: pw.Row(
-                    mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-                    children: <pw.Widget>[
-                      pw.Text(s_MainHeader, textScaleFactor: 2)
-                    ])),
-            pw.Header(level: 1, text: "${i+1}. ${s_Feladat}"),
-            pw.Header(level: 2, text: s_Leiras),
-            pw.Paragraph(
-                text: globals.feladatmegoldasLista[i].feladat,
-            ),
-            pw.Header(level: 2, text: s_Megoldas),
-            pw.Paragraph(
-                text: globals.feladatmegoldasLista[i].megoldas,
-            ),
-          ]
-      )
-      );
-    }
-  }
-
-  void AddImagesPage() {
-    m_PdfDoc.addPage(pw.MultiPage(
-        pageFormat: GetPageFormat(),
-        crossAxisAlignment: getCrossAxisAlignment(),
-        header: (pw.Context context) {
-        return GetHeader(context);
-        },
-        footer: (pw.Context context) {
-        return getFooter(context);
-        },
-        build: (pw.Context context) =>
-        <pw.Widget>[
-          pw.Header(
-              level: 0,
-              child: pw.Row(
-                  mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-                  children: <pw.Widget>[
-                    pw.Text(s_MainHeader, textScaleFactor: 2)
-                  ])),
-          pw.Header(level: 1, text: s_Kepek),
-
-
-/*          pw.Table.fromTextArray(context: context, data: const <List<pw.Image>>[
-            <pw.Image>[PdfImage.file(m_PdfDoc.document, bytes: File('test.webp').readAsBytesSync())],
-          ]),*/
-        ]));
-  }
-
-  void AddImagePage() async{
-   // Image.asset('assets/images/lake.jpg')
-   // final image = PdfImage.file(m_PdfDoc.document, bytes: File('assets/images/evosoft-logo.jpg').readAsBytesSync());
-
-//    PdfImage logoImage = await pdfImageFromImageProvider(
-//      pdf: m_PdfDoc.document,
-//      image: AssetImage('assets/images/evosoft-logo.jpg'),
-//    );
-//
-//    m_PdfDoc.addPage(pw.Page(
-//        build: (pw.Context context) {
-//          return pw.Center(
-//            child: pw.Image(logoImage),
-//          ); // Center
-//        })); // Page
-
-    var systemTempDir = (await getTemporaryDirectory()).path;
-    var file = Directory("$systemTempDir").listSync();
-    // List directory contents, recursing into sub-directories,
-    // but not following symbolic links.
-    int i = 0;
-    for(i = 0; i < file.length; i++)
-    {
-      if(file[i].statSync() == FileSystemEntityType.file)
-      print(file[i].toString());
-    }
-//
-//    final output = await getDownloadsDirectory();
-//    print('${output.path}/${m_FileName}');
-//    OpenFile.open('${output.path}/${m_FileName}', type: "image/jpeg", uti:  "public.jpeg");
-//
-
-  }
-
-  void SavePdf() async {
-    final output = await getTemporaryDirectory();
-    final file = File("${output.path}/${m_FileName}");
-    print("${output.path}/${m_FileName}");
-    // final File file = File('example.pdf');
-    file.writeAsBytesSync(m_PdfDoc.save());
-  }
-
-  void OpenPdf() async {
-    final output = await getTemporaryDirectory();
-    OpenFile.open('${output.path}/${m_FileName}', type: "application/pdf", uti:  "com.adobe.pdf");
-    print('opened');
-    print('${output.path}/${m_FileName}');
-  }
-
-  PdfPageFormat GetPageFormat() {
-    return PdfPageFormat.letter.copyWith(marginBottom: 1.5 * PdfPageFormat.cm);
-  }
-
-  pw.Container GetHeader(pw.Context context) {
-      if (context.pageNumber == 1) {
-        return null;
-      }
-      return pw.Container(
-          alignment: pw.Alignment.centerRight,
-          margin: const pw.EdgeInsets.only(bottom: 3.0 * PdfPageFormat.mm),
-          padding: const pw.EdgeInsets.only(bottom: 3.0 * PdfPageFormat.mm),
-          decoration: const pw.BoxDecoration(
-              border: pw.BoxBorder(
-                  bottom: true, width: 0.5, color: PdfColors.grey)),
-          child: pw.Text(s_MainHeader,
-              style: pw.Theme
-                  .of(context)
-                  .defaultTextStyle
-                  .copyWith(color: PdfColors.grey)));
-  }
-
-  pw.CrossAxisAlignment getCrossAxisAlignment() {
-    return pw.CrossAxisAlignment.start;
-  }
-
-  pw.Container getFooter(pw.Context context) {
-    return pw.Container(
-        alignment: pw.Alignment.centerRight,
-        margin: const pw.EdgeInsets.only(top: 1.0 * PdfPageFormat.cm),
-        child: pw.Text(
-            'Page ${context.pageNumber} of ${context.pagesCount}',
-            style: pw.Theme
-                .of(context)
-                .defaultTextStyle
-                .copyWith(color: PdfColors.grey)));
   }
 }
