@@ -17,8 +17,8 @@ Future<void> main() async {
   // Get a specific camera from the list of available cameras.
 //  final lastCamera = cameras.last;
   var firstCamera = cameras[0];
-  for (var i=0; i<cameras.length; i++) {
-    if(cameras[i].lensDirection == CameraLensDirection.front) {
+  for (var i = 0; i < cameras.length; i++) {
+    if (cameras[i].lensDirection == CameraLensDirection.front) {
       firstCamera = cameras[i];
     }
   }
@@ -77,6 +77,80 @@ class TakePictureScreenState extends State<TakePictureScreen> {
     super.dispose();
   }
 
+  takePicture() async {
+    // Take the Picture in a try / catch block. If anything goes wrong,
+    // catch the error.
+    try {
+      // Ensure that the camera is initialized.
+      await _initializeControllerFuture;
+
+      // Construct the path where the image should be saved using the
+      // pattern package.
+      path = join(
+        // Store the picture in the temp directory.
+        // Find the temp directory using the `path_provider` plugin.
+        (await getTemporaryDirectory()).path,
+        '${DateTime.now()}.png',
+      );
+
+      // Attempt to take a picture and log where it's been saved.
+      await _controller.takePicture(path);
+    } catch (e) {
+      // If an error occurs, log the error to the console.
+      print(e);
+    }
+  }
+
+  displayPicture() async {
+    // Take the Picture in a try / catch block. If anything goes wrong,
+    // catch the error.
+    try {
+      // Ensure that the camera is initialized.
+      await _initializeControllerFuture;
+
+      // If the picture was taken, display it on a new screen.
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => DisplayPictureScreen(imagePath: path),
+        ),
+      );
+    } catch (e) {
+      // If an error occurs, log the error to the console.
+      print(e);
+    }
+  }
+
+  takeVideo() async {
+    // Take the Picture in a try / catch block. If anything goes wrong,
+    // catch the error.
+    try {
+      // Ensure that the camera is initialized.
+      await _initializeControllerFuture;
+
+      // Construct the path where the image should be saved using the
+      // pattern package.
+      videoPath = join(
+        // Store the picture in the temp directory.
+        // Find the temp directory using the `path_provider` plugin.
+        (await getExternalStorageDirectory()).path,
+        '${DateTime.now()}.mp4',
+      );
+
+      // Attempt to take a picture and log where it's been saved.
+      if (!_isRecording) {
+        await _controller.startVideoRecording(videoPath);
+        _isRecording = true;
+      } else {
+        await _controller.stopVideoRecording();
+        _isRecording = false;
+      }
+    } catch (e) {
+      // If an error occurs, log the error to the console.
+      print(e);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -93,90 +167,17 @@ class TakePictureScreenState extends State<TakePictureScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: <Widget>[
                 RaisedButton(
-                  child: Icon(Icons.camera_alt),
-                  // Provide an onPressed callback.
-                  onPressed: () async {
-                    // Take the Picture in a try / catch block. If anything goes wrong,
-                    // catch the error.
-                    try {
-                      // Ensure that the camera is initialized.
-                      await _initializeControllerFuture;
-
-                      // Construct the path where the image should be saved using the
-                      // pattern package.
-                      path = join(
-                        // Store the picture in the temp directory.
-                        // Find the temp directory using the `path_provider` plugin.
-                        (await getTemporaryDirectory()).path,
-                        '${DateTime.now()}.png',
-                      );
-
-                      // Attempt to take a picture and log where it's been saved.
-                      await _controller.takePicture(path);
-
-                    } catch (e) {
-                      // If an error occurs, log the error to the console.
-                      print(e);
-                    }
-                  },
-                ),
+                    child: Icon(Icons.camera_alt),
+                    // Provide an onPressed callback.
+                    onPressed: takePicture()),
                 RaisedButton(
-                  child: Icon(Icons.panorama),
-                  // Provide an onPressed callback.
-                  onPressed: () async {
-                    // Take the Picture in a try / catch block. If anything goes wrong,
-                    // catch the error.
-                    try {
-                      // Ensure that the camera is initialized.
-                      await _initializeControllerFuture;
-
-                      // If the picture was taken, display it on a new screen.
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => DisplayPictureScreen(imagePath: path),
-                        ),
-                      );
-                    } catch (e) {
-                      // If an error occurs, log the error to the console.
-                      print(e);
-                    }
-                  },
-                ),
+                    child: Icon(Icons.panorama),
+                    // Provide an onPressed callback.
+                    onPressed: displayPicture()),
                 RaisedButton(
-                  child: Icon(Icons.videocam),
-                  // Provide an onPressed callback.
-                  onPressed: () async {
-                    // Take the Picture in a try / catch block. If anything goes wrong,
-                    // catch the error.
-                    try {
-                      // Ensure that the camera is initialized.
-                      await _initializeControllerFuture;
-
-                      // Construct the path where the image should be saved using the
-                      // pattern package.
-                      videoPath = join(
-                        // Store the picture in the temp directory.
-                        // Find the temp directory using the `path_provider` plugin.
-                        (await getExternalStorageDirectory()).path,
-                        '${DateTime.now()}.mp4',
-                      );
-
-                      // Attempt to take a picture and log where it's been saved.
-                      if (!_isRecording) {
-                        await _controller.startVideoRecording(videoPath);
-                        _isRecording = true;
-                      } else {
-                        await _controller.stopVideoRecording();
-                        _isRecording = false;
-                      }
-
-                    } catch (e) {
-                      // If an error occurs, log the error to the console.
-                      print(e);
-                    }
-                  },
-                ),
+                    child: Icon(Icons.videocam),
+                    // Provide an onPressed callback.
+                    onPressed: takeVideo()),
               ],
             );
           } else {
