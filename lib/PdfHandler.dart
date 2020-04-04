@@ -65,20 +65,21 @@ class PdfHandler {
     }
   }
 
-  void AddImagesPage() async {
+  Future<void> AddImagesPage() async {
     String _imgDocDirNewFolderPath;
 
     //create new folder if not existed
     final Directory _externalDocDir = await getExternalStorageDirectory();
     final Directory _imgDocDirFolder = Directory("${_externalDocDir.path}/${globals.s_ImagesFolder}/");
-    if(await _imgDocDirFolder.exists()) {
+    _imgDocDirNewFolderPath = _imgDocDirFolder.path;
+    /*if(await _imgDocDirFolder.exists()) {
       _imgDocDirNewFolderPath = _imgDocDirFolder.path;
     }
     else {
       final Directory _imgDocDirNewFolder = await _imgDocDirFolder
           .create(recursive: true);
       _imgDocDirNewFolderPath = _imgDocDirNewFolder.path;
-    }
+    }*/
 
     var file = Directory(_imgDocDirNewFolderPath).listSync();
     int i = 0;
@@ -109,7 +110,7 @@ class PdfHandler {
     //Directory(_tempDocDirNewFolderPath).deleteSync(recursive: true);
   }
 
-  void AddMetrikaPage()
+  Future<void> AddMetrikaPage()
   {
     m_PdfDoc.addPage(pw.MultiPage(
         pageFormat: GetPageFormat(),
@@ -130,10 +131,10 @@ class PdfHandler {
                     pw.Text(s_Metrika, textScaleFactor: 2)
                   ])),
           pw.Table.fromTextArray(context: context, data: const <List<String>>[
-            <String>['Metrika', 'Tulajdonsag', 'Acrobat Version'],
-            <String>['1993', 'PDF 1.0', 'Acrobat 1'],
-            <String>['1994', 'PDF 1.1', 'Acrobat 2'],
-            <String>['1996', 'PDF 1.2', 'Acrobat 3'],
+            <String>['Metrika', 'TS', 'Kattintásszám'],
+            <String>['Kattintás - 1', 'PDF 1.0', 'Acrobat 1'],
+            <String>['Kattintás - 2', 'PDF 1.1', 'Acrobat 2'],
+            <String>['Kattintás - 3', 'PDF 1.2', 'Acrobat 3'],
             <String>['1999', 'PDF 1.3', 'Acrobat 4'],
             <String>['2001', 'PDF 1.4', 'Acrobat 5'],
             <String>['2003', 'PDF 1.5', 'Acrobat 6'],
@@ -149,14 +150,14 @@ class PdfHandler {
         ]));
   }
 
-  void SavePdf() async {
+  Future<void> SavePdf() async {
     final output = await getExternalStorageDirectory();
     final file = File("${output.path}/${m_FileName}");
     print("${output.path}/${m_FileName}");
     file.writeAsBytesSync(m_PdfDoc.save());
   }
 
-  void OpenPdf() async {
+  Future<void> OpenPdf() async {
     final output = await getExternalStorageDirectory();
     OpenFile.open('${output.path}/${m_FileName}', type: "application/pdf", uti:  "com.adobe.pdf");
     print('opened');

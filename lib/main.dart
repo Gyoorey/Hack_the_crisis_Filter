@@ -222,6 +222,14 @@ class _SOFState extends State<SOF> {
                     globals.feladatmegoldasLista[globals.feladatSorszam]
                         .megoldas = megoldasTextController.text;
                     globals.feladatSorszam++;
+
+                    if (globals.feladatSorszam >=
+                    globals.feladatmegoldasLista.length) {
+                      await cam.stop();
+                      m_PdfHandler.AddFeladatPage();
+                      await m_PdfHandler.AddMetrikaPage();
+                      await m_PdfHandler.AddImagesPage();
+                    }
 					
                     // TODO: @dani extend globals with charCounter
                     stopTimer();
@@ -260,12 +268,8 @@ class _SOFState extends State<SOF> {
                RaisedButton(
                   child: Text('Beadas'),
                   onPressed: () async {
-					await cam.stop();
                     globals.beadva = true;
-                    m_PdfHandler.AddFeladatPage();
-                    //m_PdfHandler.AddImagesPage();
-                    m_PdfHandler.AddMetrikaPage();
-                    m_PdfHandler.SavePdf();
+                    await m_PdfHandler.SavePdf();
                     await Navigator.push(
                       context,
                       MaterialPageRoute(
@@ -298,6 +302,12 @@ class _SOFState extends State<SOF> {
                     child: Text('Megtekintes'),
                     onPressed: () async {
                       m_PdfHandler.OpenPdf();
+                    }
+                ),
+                RaisedButton(
+                    child: Text('Kilepes'),
+                    onPressed: () async {
+                      exit(0);
                     }
                 )
               ]

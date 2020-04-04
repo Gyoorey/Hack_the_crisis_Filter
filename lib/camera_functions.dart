@@ -100,7 +100,7 @@ class CameraFunctions {
           this.audio =
               join(audioFolder, "audio" + this.counter.toString() + ".aac");
 
-          _controller.startVideoRecording(this.video);
+          await _controller.startVideoRecording(this.video);
           isRecording = true;
           //start a recording
           Timer(Duration(seconds: period), () {
