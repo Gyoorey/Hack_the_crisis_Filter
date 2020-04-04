@@ -65,7 +65,7 @@ class CameraFunctions {
           print("FFmpeg process exited with rc $rc"));
       //get frames from each second
       command = "-i " + this.video + " -vf fps=1 " + imageFolder + "/" +
-          this.counter.toString() + "_%d.jpg";
+          this.counter.toString() + "_%d.png";
       await _flutterFFmpeg.execute(command).then((rc) =>
           print("FFmpeg process exited with rc $rc"));
       this.counter++;
@@ -115,7 +115,7 @@ class CameraFunctions {
               print("FFmpeg process exited with rc $rc"));
           //get frames from each second
           command = "-i " + this.video + " -vf fps=1 " + imageFolder + "/" +
-              this.counter.toString() + "_%d.jpg";
+              this.counter.toString() + "_%d.png";
           await _flutterFFmpeg.execute(command).then((rc) =>
               print("FFmpeg process exited with rc $rc"));
 

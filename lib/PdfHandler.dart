@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 import 'dart:ui';
@@ -94,7 +95,9 @@ class PdfHandler {
     for(i = 0; i < file.length; i++) {
       print("full path:"+'${_imgDocDirNewFolderPath}${file[i].toString()}');
       print("file path:" + file[i].path);
-      final image = PdfImage.file(m_PdfDoc.document, bytes: File('${file[i].path}').readAsBytesSync());
+      var bytes_image = await File('${file[i].path}').readAsBytes();
+      var image = PdfImage.file(m_PdfDoc.document, bytes: bytes_image);
+
       pdfImages.add(pw.Image(image));
       m_PdfDoc.addPage(
         pw.Page(
