@@ -7,6 +7,7 @@ import 'package:open_file/open_file.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:path_provider/path_provider.dart';
+import 'globals.dart' as globals;
 
 class PdfHandler {
   final String s_MainHeader = "Írásbeli számonkérés";
@@ -14,10 +15,7 @@ class PdfHandler {
   final String s_Leiras = "Leiras";
   final String s_Megoldas = "Megoldas";
   final String s_Kepek = "Kepek";
-  final String s_Metrika = "Metrika";
-  final String s_ImagesFolder = "images";
-
-  int feladatCount = 0;
+  final String s_Metrika = "Metrikak";
 
   String m_FileName;
   pw.Document m_PdfDoc;
@@ -32,7 +30,87 @@ class PdfHandler {
   }
 
   void AddFeladatPage() {
-    feladatCount++;
+    int i = 0;
+    for(i = 0; i < globals.feladatmegoldasLista.length; i++) {
+      m_PdfDoc.addPage(pw.MultiPage(
+          pageFormat: GetPageFormat(),
+          crossAxisAlignment: getCrossAxisAlignment(),
+          header: (pw.Context context) {
+            return GetHeader(context);
+          },
+          footer: (pw.Context context) {
+            return getFooter(context);
+          },
+          build: (pw.Context context) =>
+          <pw.Widget>[
+            pw.Header(
+                level: 0,
+                child: pw.Row(
+                    mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                    children: <pw.Widget>[
+                      pw.Text(s_MainHeader, textScaleFactor: 2)
+                    ])),
+            pw.Header(level: 1, text: "${i+1}. ${s_Feladat}"),
+            pw.Header(level: 2, text: s_Leiras),
+            pw.Paragraph(
+              text: globals.feladatmegoldasLista[i].feladat,
+            ),
+            pw.Header(level: 2, text: s_Megoldas),
+            pw.Paragraph(
+              text: globals.feladatmegoldasLista[i].megoldas,
+            ),
+          ]
+      )
+      );
+    }
+  }
+
+  void AddImagesPage() async {
+    String _imgDocDirNewFolderPath;
+
+    //create new folder if not existed
+    final Directory _externalDocDir = await getExternalStorageDirectory();
+    final Directory _imgDocDirFolder = Directory("${_externalDocDir.path}/${globals.s_ImagesFolder}/");
+    if(await _imgDocDirFolder.exists()) {
+      _imgDocDirNewFolderPath = _imgDocDirFolder.path;
+    }
+    else {
+      final Directory _imgDocDirNewFolder = await _imgDocDirFolder
+          .create(recursive: true);
+      _imgDocDirNewFolderPath = _imgDocDirNewFolder.path;
+    }
+
+    var file = Directory(_imgDocDirNewFolderPath).listSync();
+    int i = 0;
+    for(i = 0; i < file.length; i++) {
+      print(file[i].toString());
+    }
+
+    var pdfImages = <pw.Image>[];
+    pw.Page page = pw.Page();
+    pw.Document document = pw.Document();
+
+    for(i = 0; i < file.length; i++) {
+      print("full path:"+'${_imgDocDirNewFolderPath}${file[i].toString()}');
+      print("file path:" + file[i].path);
+      final image = PdfImage.file(m_PdfDoc.document, bytes: File('${file[i].path}').readAsBytesSync());
+      pdfImages.add(pw.Image(image));
+      m_PdfDoc.addPage(
+        pw.Page(
+          build: (pw.Context context) {
+            return pw.Center(
+              child: pw.Image(image),
+            ); // Center
+          }
+        )
+      ); // Page
+    }
+
+    //Directory(_tempDocDirNewFolderPath).deleteSync(recursive: true);
+  }
+
+  void AddMetrikaPage()
+  {
     m_PdfDoc.addPage(pw.MultiPage(
         pageFormat: GetPageFormat(),
         crossAxisAlignment: getCrossAxisAlignment(),
@@ -49,90 +127,44 @@ class PdfHandler {
               child: pw.Row(
                   mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                   children: <pw.Widget>[
-                    pw.Text(s_MainHeader, textScaleFactor: 2)
+                    pw.Text(s_Metrika, textScaleFactor: 2)
                   ])),
-          pw.Header(level: 1, text: "${feladatCount}. ${s_Feladat}"),
-          pw.Header(level: 2, text: s_Leiras),
-          pw.Paragraph(
-              text: "feladat"
-          ),
-          pw.Header(level: 2, text: s_Megoldas),
-          pw.Paragraph(
-              text: "megoldas"
-          ),
+          pw.Table.fromTextArray(context: context, data: const <List<String>>[
+            <String>['Metrika', 'Tulajdonsag', 'Acrobat Version'],
+            <String>['1993', 'PDF 1.0', 'Acrobat 1'],
+            <String>['1994', 'PDF 1.1', 'Acrobat 2'],
+            <String>['1996', 'PDF 1.2', 'Acrobat 3'],
+            <String>['1999', 'PDF 1.3', 'Acrobat 4'],
+            <String>['2001', 'PDF 1.4', 'Acrobat 5'],
+            <String>['2003', 'PDF 1.5', 'Acrobat 6'],
+            <String>['2005', 'PDF 1.6', 'Acrobat 7'],
+            <String>['2006', 'PDF 1.7', 'Acrobat 8'],
+            <String>['2008', 'PDF 1.7', 'Acrobat 9'],
+            <String>['2009', 'PDF 1.7', 'Acrobat 9.1'],
+            <String>['2010', 'PDF 1.7', 'Acrobat X'],
+            <String>['2012', 'PDF 1.7', 'Acrobat XI'],
+            <String>['2017', 'PDF 2.0', 'Acrobat DC'],
+          ]),
+          //pw.Padding(padding: const pw.EdgeInsets.all(10)),
         ]));
   }
 
-  void AddImagesPage() async {
-    String _tempDocDirNewFolderPath;
-
-    //create new folder if not existed
-    final Directory _tempDocDir = await getTemporaryDirectory();
-    final Directory _tempDocDirFolder = Directory("${_tempDocDir.path}/$s_ImagesFolder/");
-    if(await _tempDocDirFolder.exists()) {
-      _tempDocDirNewFolderPath = _tempDocDirFolder.path;
-    }
-    else {
-    final Directory _tempDocDirNewFolder = await _tempDocDirFolder
-        .create(recursive: true);
-      _tempDocDirNewFolderPath = _tempDocDirNewFolder.path;
-    }
-
-    //Directory(_tempDocDirNewFolderPath).deleteSync(recursive: true);
-
-    var file = Directory(_tempDocDirNewFolderPath).listSync();
-    // List directory contents, recursing into sub-directories,
-    // but not following symbolic links.
-    int i = 0;
-    for(i = 0; i < file.length; i++) {
-      print(file[i].toString());
-    }
-
-    var pdfImages = <pw.Image>[];
-    pw.Page page = pw.Page();
-    pw.Document document = pw.Document();
-
-    for(i = 0; i < file.length; i++) {
-      print("full path:"+'${_tempDocDirNewFolderPath}${file[i].toString()}');
-      print("file path:" + file[i].path);
-      final image = PdfImage(m_PdfDoc.document, image: File('${file[i].path}').readAsBytesSync(), width: 10, height: 10);
-      final img = PdfImage.file(m_PdfDoc.document, bytes: File('${file[i].path}').readAsBytesSync());
-      m_PdfDoc.addPage(
-        pw.Page(
-          build: (pw.Context context) {
-
-            return pw.Center(
-            child: pw.Image(image),
-            ); // Center
-      })); // Page
-    }
-  }
-
   void SavePdf() async {
-    final output = await getTemporaryDirectory();
+    final output = await getExternalStorageDirectory();
     final file = File("${output.path}/${m_FileName}");
     print("${output.path}/${m_FileName}");
-    // final File file = File('example.pdf');
     file.writeAsBytesSync(m_PdfDoc.save());
   }
 
-  void RemovePdf() async {
-    final output = await getTemporaryDirectory();
-    final file = File("${output.path}/${m_FileName}");
-    print("${output.path}/${m_FileName}");
-    // final File file = File('example.pdf');
-    file.delete();
-  }
-
   void OpenPdf() async {
-    final output = await getTemporaryDirectory();
+    final output = await getExternalStorageDirectory();
     OpenFile.open('${output.path}/${m_FileName}', type: "application/pdf", uti:  "com.adobe.pdf");
     print('opened');
     print('${output.path}/${m_FileName}');
   }
 
   PdfPageFormat GetPageFormat() {
-    return PdfPageFormat.a4.copyWith(marginBottom: 1.5 * PdfPageFormat.cm);
+    return PdfPageFormat.letter.copyWith(marginBottom: 1.5 * PdfPageFormat.cm);
   }
 
   pw.Container GetHeader(pw.Context context) {
@@ -167,42 +199,5 @@ class PdfHandler {
                 .of(context)
                 .defaultTextStyle
                 .copyWith(color: PdfColors.grey)));
-  }
-}
-
-class ChoiceCard extends pw.Widget {
-  ChoiceCard(this.image);
-
-  final pw.Image image;
-/*
-  Widget build(BuildContext context) {
-    TextStyle textStyle = Theme.of(context).textTheme.display1;
-    if (selected)
-      textStyle = textStyle.copyWith(color: Colors.lightGreenAccent[400]);
-    return Card(
-        color: Colors.white,
-        child: Row(
-          children: <Widget>[
-            new Container(
-                padding: const EdgeInsets.all(8.0),
-                alignment: Alignment.topLeft,
-                child: Icon(choice.icon, size:80.0, color: textStyle.color,)),
-            new Expanded(
-                child: new Container(
-                  padding: const EdgeInsets.all(10.0),
-                  alignment: Alignment.topLeft,
-                  child:
-                  Text(choice.title, style: null, textAlign: TextAlign.left, maxLines: 5,),
-                )
-            ),
-          ],
-          crossAxisAlignment: CrossAxisAlignment.start,
-        )
-    );
-  }*/
-
-  @override
-  void layout(pw.Context context, pw.BoxConstraints constraints, {bool parentUsesSize = false}) {
-    // TODO: implement layout
   }
 }
