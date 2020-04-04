@@ -6,6 +6,7 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:path_provider/path_provider.dart';
 import 'globals.dart' as globals;
+import 'package:path/path.dart' show join;
 import 'package:startupnamer/camera_functions.dart';
 import 'PdfHandler.dart';
 
@@ -96,7 +97,7 @@ class _SOFState extends State<SOF> {
             child: TextField(
               maxLines: 10,
               controller: megoldasTextController,
-			  onChanged: _onChanged,
+			        onChanged: _onChanged,
               decoration: InputDecoration(
                 hintText: "Írd ide a megoldást",
                 fillColor: Colors.grey[300],
@@ -118,7 +119,7 @@ class _SOFState extends State<SOF> {
   }
   
   Future<String> get _localPath async {
-    final directory = await getTemporaryDirectory();
+    final directory = await getExternalStorageDirectory();
     return directory.path;
   }
 
@@ -127,21 +128,28 @@ class _SOFState extends State<SOF> {
     return File('$path/characterCount.txt');
   }
 
-  Future<File> writeCounter(int counter) async {
+  Future<File> writeCounter() async {
     final file = await _localFile;
-    return file.writeAsString('${DateTime.now()}:'+'$counter\n', mode: FileMode.append);
+    String appendedCounters = "";
+    for (int i = 0; i < globals.feladatmegoldasLista.length; i++) {
+      for (int j = 0; j < globals.feladatmegoldasLista[i].charCounter.length; j++) {
+        appendedCounters += globals.feladatmegoldasLista[i].charCounter[j];
+      }
+    }
+    return file.writeAsString(appendedCounters);
   }
 
   void startTimer() {
     _charLogTimer = Timer.periodic(new Duration(seconds: 10), (time) {
-      print("charCount: " + _charCount.toString());
-      writeCounter(_charCount);
+      int exerciseNum = (globals.feladatSorszam == globals.feladatmegoldasLista.length) ? globals.feladatSorszam - 1 : globals.feladatSorszam;
+      globals.feladatmegoldasLista[exerciseNum].charCounter.add('${DateTime.now()},feladat_$exerciseNum,$_charCount\n');
     });
   }
 
   void stopTimer() {
     if (_charLogTimer != null) {
-      writeCounter(_charCount);
+      int exerciseNum = (globals.feladatSorszam == globals.feladatmegoldasLista.length) ? globals.feladatSorszam - 1 : globals.feladatSorszam;
+      globals.feladatmegoldasLista[exerciseNum].charCounter.add('${DateTime.now()},feladat_$exerciseNum,$_charCount\n');
       _charLogTimer.cancel();
     }
   }
@@ -177,14 +185,12 @@ class _SOFState extends State<SOF> {
                 child: RaisedButton(
                   child: Text('Következő'),
                   onPressed: () async {
+                    stopTimer();
                     if (globals.feladatSorszam <
                         globals.feladatmegoldasLista.length) {
                       globals.feladatmegoldasLista[globals.feladatSorszam]
                           .megoldas = megoldasTextController.text;
                       globals.feladatSorszam++;
-					  
-                      // TODO: @dani extend globals with charCounter
-                      stopTimer();
 
                       await Navigator.push(
                         context,
@@ -217,11 +223,13 @@ class _SOFState extends State<SOF> {
               child: RaisedButton(
                 child: Text('Következő'),
                 onPressed: () async {
+                  stopTimer();
                   if (globals.feladatSorszam <
                       globals.feladatmegoldasLista.length) {
                     globals.feladatmegoldasLista[globals.feladatSorszam]
                         .megoldas = megoldasTextController.text;
                     globals.feladatSorszam++;
+
 
                     if (globals.feladatSorszam >=
                     globals.feladatmegoldasLista.length) {
@@ -229,10 +237,9 @@ class _SOFState extends State<SOF> {
                       m_PdfHandler.AddFeladatPage();
                       await m_PdfHandler.AddMetrikaPage();
                       await m_PdfHandler.AddImagesPage();
+                      await writeCounter();
                     }
-					
-                    // TODO: @dani extend globals with charCounter
-                    stopTimer();
+
                     await Navigator.push(
                       context,
                       MaterialPageRoute(
@@ -247,10 +254,8 @@ class _SOFState extends State<SOF> {
                 child: Text("Előző"),
                 onPressed: () {
                   if (globals.feladatSorszam > 0) {
-                    globals.feladatSorszam--;
-					
-					// TODO: @dani extend globals with charCounter
                     stopTimer();
+                    globals.feladatSorszam--;
                     Navigator.pop(context);
                   }
                 }

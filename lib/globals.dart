@@ -3,6 +3,7 @@ library my_prj.globals;
 class FeladatMegoldasParos {
   String feladat = "";
   String megoldas = "";
+  List<String> charCounter = [];
 
   FeladatMegoldasParos(this.feladat);
 }
