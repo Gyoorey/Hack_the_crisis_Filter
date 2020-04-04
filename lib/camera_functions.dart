@@ -57,7 +57,6 @@ class CameraFunctions {
   }
 
   Future<void> stop() async {
-    isRunning = false;
     if(isRecording) {
       isRecording = false;
       await _controller.stopVideoRecording();
@@ -71,6 +70,7 @@ class CameraFunctions {
           print("FFmpeg process exited with rc $rc"));
       this.counter++;
     }
+    isRunning = false;
   }
 
   void recordVideo() async {

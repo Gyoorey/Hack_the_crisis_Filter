@@ -5,6 +5,7 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:path_provider/path_provider.dart';
 import 'globals.dart' as globals;
+import 'package:startupnamer/camera_functions.dart';
 
 void PopulateFeladatLista()
 {
@@ -14,9 +15,11 @@ void PopulateFeladatLista()
 }
 
 final String s_AppTitle = "Számonkérési alkalmazás";
+CameraFunctions cam;
 
 void main() {
   PopulateFeladatLista();
+  cam = CameraFunctions();
   runApp(App());
 }
 
@@ -32,6 +35,8 @@ class App extends StatelessWidget {
 class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    cam.initState();
+    cam.run();
     return Scaffold(
       appBar: AppBar(title: Text(s_AppTitle)),
       body: Center(
@@ -201,6 +206,7 @@ class _SOFState extends State<SOF> {
                RaisedButton(
                   child: Text('Beadas'),
                   onPressed: () async {
+                    await cam.stop();
                     globals.beadva = true;
                     m_PdfHandler.AddFeladatPage();
                     m_PdfHandler.SavePdf();
