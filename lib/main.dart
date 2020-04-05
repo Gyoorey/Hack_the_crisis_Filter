@@ -128,12 +128,12 @@ class _SOFState extends State<SOF> {
     return File('$path/characterCount.txt');
   }
 
-  Future<File> writeCounter() async {
+  Future<File> writeCountersFile() async {
     final file = await _localFile;
     String appendedCounters = "";
     for (int i = 0; i < globals.feladatmegoldasLista.length; i++) {
       for (int j = 0; j < globals.feladatmegoldasLista[i].charCounter.length; j++) {
-        appendedCounters += globals.feladatmegoldasLista[i].charCounter[j];
+        appendedCounters += "feladat_$i," + globals.feladatmegoldasLista[i].charCounter[j].toString() + "\n";
       }
     }
     return file.writeAsString(appendedCounters);
@@ -142,14 +142,14 @@ class _SOFState extends State<SOF> {
   void startTimer() {
     _charLogTimer = Timer.periodic(new Duration(seconds: 10), (time) {
       int exerciseNum = (globals.feladatSorszam == globals.feladatmegoldasLista.length) ? globals.feladatSorszam - 1 : globals.feladatSorszam;
-      globals.feladatmegoldasLista[exerciseNum].charCounter.add('${DateTime.now()},feladat_$exerciseNum,$_charCount\n');
+      globals.feladatmegoldasLista[exerciseNum].charCounter.add(globals.CharacterCounter(DateTime.now(), _charCount));
     });
   }
 
   void stopTimer() {
     if (_charLogTimer != null) {
       int exerciseNum = (globals.feladatSorszam == globals.feladatmegoldasLista.length) ? globals.feladatSorszam - 1 : globals.feladatSorszam;
-      globals.feladatmegoldasLista[exerciseNum].charCounter.add('${DateTime.now()},feladat_$exerciseNum,$_charCount\n');
+      globals.feladatmegoldasLista[exerciseNum].charCounter.add(globals.CharacterCounter(DateTime.now(), _charCount));
       _charLogTimer.cancel();
     }
   }
@@ -237,7 +237,7 @@ class _SOFState extends State<SOF> {
                       m_PdfHandler.AddFeladatPage();
                       await m_PdfHandler.AddMetrikaPage();
                       await m_PdfHandler.AddImagesPage();
-                      await writeCounter();
+                      await writeCountersFile();
                     }
 
                     await Navigator.push(
