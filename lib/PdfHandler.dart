@@ -55,10 +55,12 @@ class PdfHandler {
             pw.Header(level: 2, text: s_Leiras),
             pw.Paragraph(
               text: globals.feladatmegoldasLista[i].feladat,
+              textAlign: pw.TextAlign.left
             ),
             pw.Header(level: 2, text: s_Megoldas),
             pw.Paragraph(
               text: globals.feladatmegoldasLista[i].megoldas,
+                textAlign: pw.TextAlign.left
             ),
           ]
       )
@@ -134,20 +136,12 @@ class PdfHandler {
                     pw.Text(s_Metrika, textScaleFactor: 2)
                   ])),
           pw.Table.fromTextArray(context: context, data: const <List<String>>[
-            <String>['Metrika', 'TS', 'Kattintásszám'],
-            <String>['Kattintás - 1', 'PDF 1.0', 'Acrobat 1'],
-            <String>['Kattintás - 2', 'PDF 1.1', 'Acrobat 2'],
-            <String>['Kattintás - 3', 'PDF 1.2', 'Acrobat 3'],
-            <String>['1999', 'PDF 1.3', 'Acrobat 4'],
-            <String>['2001', 'PDF 1.4', 'Acrobat 5'],
-            <String>['2003', 'PDF 1.5', 'Acrobat 6'],
-            <String>['2005', 'PDF 1.6', 'Acrobat 7'],
-            <String>['2006', 'PDF 1.7', 'Acrobat 8'],
-            <String>['2008', 'PDF 1.7', 'Acrobat 9'],
-            <String>['2009', 'PDF 1.7', 'Acrobat 9.1'],
-            <String>['2010', 'PDF 1.7', 'Acrobat X'],
-            <String>['2012', 'PDF 1.7', 'Acrobat XI'],
-            <String>['2017', 'PDF 2.0', 'Acrobat DC'],
+            <String>['Kattintas szam metrika', 'Feladat befejezesenek idopontja', 'Kattintas szam'],
+            <String>['1. feladat', '2020-04-05 10:01:00.249', '10'],
+            <String>['2. feladat', '2020-04-05 10:05:01.357', '153'],
+            <String>['3. feladat', '2020-04-05 10:06:09.436', '52'],
+            <String>['4. feladat', '2020-04-05 10:10:34.676', '134'],
+            <String>['5. feladat', '2020-04-05 10:14:20.235', '95'],
           ]),
           //pw.Padding(padding: const pw.EdgeInsets.all(10)),
         ]));
